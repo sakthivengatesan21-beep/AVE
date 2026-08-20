@@ -1,5 +1,9 @@
 import './globals.css';
-import { Sidebar, Header } from '@/components/Navigation';
+
+export const metadata = {
+  title: 'ProofStay — Evidence-Based Rental Damage Attribution System',
+  description: 'Document rental property condition, connect maintenance history, and generate evidence-based damage analysis.',
+};
 
 export default function RootLayout({
   children,
@@ -8,14 +12,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark bg-zinc-950 text-zinc-100">
-      <body className="flex h-screen overflow-hidden antialiased font-sans bg-zinc-950 text-zinc-100">
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-6 bg-zinc-950">
-            {children}
-          </main>
-        </div>
+      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased font-sans">
+        {children}
       </body>
     </html>
   );
