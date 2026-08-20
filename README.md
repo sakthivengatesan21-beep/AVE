@@ -1,52 +1,82 @@
-# Asynchronous Verification Engine (AVE)
+# ProofStay — Evidence-Based Rental Damage Attribution System
 
-AVE is a runtime policy enforcement system for AI agents. It acts as a deterministic verification gateway between AI agents and external tools/APIs.
+ProofStay is a renter-focused web application designed to determine whether property condition changes at move-out are:
+- Pre-existing
+- Newly appeared
+- Normal wear-and-tear
+- Potentially maintenance-related
+- Potentially tenant-related
+- Inconclusive
 
-When an AI agent generates a tool call, AVE intercepts the call, extracts runtime parameters, resolves formal security policies, and evaluates them using the Z3 SMT Solver before deciding whether to ALLOW or BLOCK execution.
+## Key Concept
 
-## Core Principle
+> **Compare the property's condition over time and connect visual evidence with maintenance events to produce an evidence-based damage attribution report.**
 
-```
-AI Agent -> Tool Call -> AVE Gateway -> Parameter Extraction -> Policy Resolution -> Z3 Verification -> ALLOW / BLOCK -> External Tool / Violation Report -> Audit Log
-```
+ProofStay never claims legal liability or assigns direct blame. All AI conclusions use objective non-accusatory language backed by physical photographs, timestamps, and building incident logs.
 
-Blocked actions are NEVER forwarded to external tools. Instead, AVE returns structured violation explanations and repair guidance for agent self-correction.
+---
 
 ## Tech Stack
 
-- **Backend**: FastAPI, Pydantic, Z3Py (`z3-solver`), SQLAlchemy
-- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, Lucide Icons
-- **Database**: Supabase PostgreSQL / SQLite
-- **Formal Solver**: Z3 SMT Solver
+- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS, Lucide Icons
+- **Backend / Database**: Supabase PostgreSQL / LocalStorage Fallback
+- **AI Vision & Temporal Reasoning**: OpenAI GPT-4o-mini (Vision API) with structured JSON output and Demo Fallback Mode
+- **UI Components**: Lazarev property inspection design system
 
-## Running Locally
+---
 
-### Backend Setup
-```bash
-cd backend
-python -m vaxis_venv .venv # optional
-pip install -r requirements.txt
-python -m app.main
-```
-The FastAPI backend runs at `http://localhost:8000`. API docs available at `http://localhost:8000/docs`.
+## Getting Started
 
-### Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The Next.js dashboard runs at `http://localhost:3000`.
+### Prerequisites
 
-### Running Tests
-```bash
-cd backend
-pytest
-```
+- Node.js 18+ and `npm`
 
-## Features
+### Setup & Run
 
-- **Formal Policy Engine**: Mathematical constraint evaluation using Z3 Python API (no unsafe `eval()`).
-- **Simulated Tool Execution**: Safe sandbox simulation for `issue_refund`, `transfer_money`, and `delete_record`.
-- **Repair Guidance**: Structured actionable suggestions for blocked actions.
-- **Enterprise Dark Graphite UI**: Professional security observability dashboard with real-time audit logs and live verification metrics.
+1. Clone repo and install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Run local development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+3. Build production bundle:
+   ```bash
+   npm run build
+   ```
+
+---
+
+## Demo Mode
+
+ProofStay runs out-of-the-box with **pre-loaded demo data** for **Greenwood Apartment 204** without requiring an OpenAI API key or Supabase credentials.
+
+Pre-loaded Scenarios:
+1. **Pre-existing Crack (Kitchen)**: Hairline crack recorded at move-in and unchanged at move-out.
+2. **Maintenance-Related Stain (Kitchen Ceiling)**: Clean ceiling at move-in + Oct 12 water leak report → Move-out yellow stain ring.
+3. **New / Unexplained Scratch (Bedroom)**: Clean drywall at move-in + Move-out 15cm abrasion with no corresponding maintenance event.
+
+To enable live OpenAI Vision analysis, set `OPENAI_API_KEY` in your environment variables.
+
+---
+
+## Database Schema
+
+Database tables are located in `database/schema.sql`:
+- `properties`
+- `rooms`
+- `evidence`
+- `maintenance_events`
+- `damage_analyses`
+- `reports`
+
+---
+
+## Important Legal Disclaimer
+
+This report is an evidence organization and temporal visual analysis tool. It does not determine legal liability, contractual responsibility, or entitlement to a security deposit refund. Final decisions should be made by relevant parties or qualified professionals.

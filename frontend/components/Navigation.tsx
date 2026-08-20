@@ -1,135 +1,164 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { Property } from '@/lib/types';
+import { getProperties } from '@/lib/storage';
 import {
-  Shield,
-  LayoutDashboard,
-  Activity,
-  CheckCircle2,
-  AlertTriangle,
-  FileCode,
-  Bot,
+  Building2,
+  Home,
+  Camera,
+  Wrench,
+  LogOut,
+  BrainCircuit,
   FileText,
-  Settings,
-  Play,
-  Search,
-  Bell,
-  User
+  ChevronDown,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 
-export function Sidebar() {
+export default function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedPropId, setSelectedPropId] = useState<string>('prop-greenwood-204');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Overview', href: '/', icon: LayoutDashboard },
-    { name: 'Agent Playground', href: '/demo', icon: Play },
-    { section: 'Operations' },
-    { name: 'Live Actions', href: '/actions', icon: Activity },
-    { name: 'Verification Runs', href: '/verifications', icon: CheckCircle2 },
-    { name: 'Violations', href: '/violations', icon: AlertTriangle },
-    { section: 'Configuration' },
-    { name: 'Policies', href: '/policies', icon: FileCode },
-    { name: 'Agents', href: '/agents', icon: Bot },
-    { section: 'Compliance' },
-    { name: 'Audit Logs', href: '/audit-logs', icon: FileText },
-    { section: 'System' },
-    { name: 'Settings', href: '/settings', icon: Settings },
+  useEffect(() => {
+    async function loadProps() {
+      const list = await getProperties();
+      setProperties(list);
+      if (list.length > 0 && !list.find((p) => p.id === selectedPropId)) {
+        setSelectedPropId(list[0].id);
+      }
+    }
+    loadProps();
+  }, []);
+
+  const selectedProp = properties.find((p) => p.id === selectedPropId) || properties[0];
+
+  const hasApiKey = false; // Demo mode active by default or when OPENAI_API_KEY is unset
+
+  const navLinks = [
+    { href: `/dashboard`, label: 'Dashboard', icon: Home },
+    { href: `/properties/${selectedPropId}`, label: 'Property Overview', icon: Building2 },
+    { href: `/properties/${selectedPropId}/move-in`, label: 'Move-In Evidence', icon: Camera },
+    { href: `/properties/${selectedPropId}/maintenance`, label: 'Maintenance Events', icon: Wrench },
+    { href: `/properties/${selectedPropId}/move-out`, label: 'Move-Out Evidence', icon: LogOut },
+    { href: `/properties/${selectedPropId}/analysis`, label: 'Damage Analysis', icon: BrainCircuit },
+    { href: `/properties/[id]/report`.replace('[id]', selectedPropId), label: 'Evidence Report', icon: FileText },
   ];
 
   return (
-    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between shrink-0 select-none">
-      <div>
-        {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-zinc-800">
-          <Shield className="w-6 h-6 text-blue-500 mr-2.5" />
-          <div className="flex flex-col">
-            <span className="font-semibold text-zinc-100 tracking-wide text-sm font-mono">AVE GATEWAY</span>
-            <span className="text-[10px] text-zinc-500 tracking-wider uppercase font-sans">Formal Policy Engine</span>
-          </div>
-        </div>
+    <header className="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
 
-        {/* Navigation Items */}
-        <nav className="p-4 space-y-1 text-xs">
-          {navigation.map((item, idx) => {
-            if ('section' in item) {
-              return (
-                <div key={idx} className="pt-4 pb-1.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
-                  {item.section}
-                </div>
-              );
-            }
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2.5 text-zinc-100 font-bold text-lg tracking-tight group">
+              <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:bg-blue-600/30 transition-colors">
+                <Layers className="w-4 h-4" />
+              </div>
+              <span>Proof<span className="text-blue-400">Stay</span></span>
+            </Link>
 
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-zinc-800 text-zinc-100 font-medium'
-                    : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
-                }`}
+            {/* Active Property Dropdown Selector */}
+            <div className="relative hidden md:block">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-200 hover:bg-zinc-800 transition-colors"
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : 'text-zinc-500'}`} />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+                <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                <span className="truncate max-w-[160px]">{selectedProp?.name || 'Greenwood Apartment 204'}</span>
+                <ChevronDown className="w-3 h-3 text-zinc-400 ml-1" />
+              </button>
 
-      {/* Footer / Environment Status */}
-      <div className="p-4 border-t border-zinc-800 bg-zinc-950/50 text-[11px] text-zinc-500 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <span className="text-zinc-400">Solver Engine</span>
-          <span className="px-1.5 py-0.5 text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 rounded font-mono">Z3 SMT Active</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-zinc-400">Mode</span>
-          <span className="text-zinc-300">Inline Runtime</span>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-export function Header() {
-  return (
-    <header className="h-16 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur px-6 flex items-center justify-between shrink-0">
-      <div className="flex items-center gap-3">
-        <span className="flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          Production Pipeline
-        </span>
-      </div>
-
-      <div className="flex items-center gap-4 text-zinc-400 text-sm">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Search actions, policies, agents..."
-            className="bg-zinc-900 border border-zinc-800 rounded-md pl-9 pr-4 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 w-64"
-          />
-        </div>
-
-        <button className="p-2 hover:bg-zinc-900 rounded-md transition-colors relative">
-          <Bell className="w-4 h-4 text-zinc-400" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full" />
-        </button>
-
-        <div className="h-4 w-[1px] bg-zinc-800" />
-
-        <div className="flex items-center gap-2 text-xs text-zinc-300">
-          <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
-            <User className="w-4 h-4 text-zinc-300" />
+              {isDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-64 rounded-lg bg-zinc-900 border border-zinc-800 shadow-xl py-1 z-50 text-xs">
+                  <div className="px-3 py-2 border-b border-zinc-800 text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+                    Select Property Record
+                  </div>
+                  {properties.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedPropId(p.id);
+                        setIsDropdownOpen(false);
+                        router.push(`/properties/${p.id}`);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-zinc-800/60 transition-colors ${
+                        p.id === selectedPropId ? 'text-blue-400 font-medium bg-blue-950/20' : 'text-zinc-300'
+                      }`}
+                    >
+                      <span className="truncate">{p.name}</span>
+                      <span className="text-[10px] text-zinc-500">Active</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-zinc-800 mt-1 pt-1">
+                    <Link
+                      href="/properties"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="block px-3 py-2 text-blue-400 hover:bg-zinc-800/60 font-medium text-center"
+                    >
+                      + Create New Property Record
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <span className="font-medium text-zinc-200">Security Operator</span>
+
+          {/* Nav Links */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-zinc-800/90 text-blue-400 font-semibold border border-zinc-700/60 shadow-sm'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-zinc-500'}`} />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Mode Badge Indicator */}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-800/60">
+              <Sparkles className="w-3 h-3 text-emerald-400 animate-pulse" />
+              <span>Demo Analysis Mode</span>
+            </div>
+          </div>
+
         </div>
+      </div>
+
+      {/* Secondary Sub-nav for Mobile/Tablet */}
+      <div className="lg:hidden border-t border-zinc-800/60 bg-zinc-950/80 px-4 py-2 overflow-x-auto flex items-center gap-2 text-xs">
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`whitespace-nowrap px-2.5 py-1 rounded text-xs ${
+                isActive ? 'bg-blue-600/20 text-blue-400 font-medium' : 'text-zinc-400'
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
     </header>
   );
